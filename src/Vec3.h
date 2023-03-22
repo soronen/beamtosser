@@ -135,3 +135,19 @@ inline Vec3 RandomInUnitSphere()
 		return p;
 	}
 }
+
+// same 
+inline Vec3 RandomUnitVector()
+{
+	return UnitVector(RandomInUnitSphere());
+}
+
+// same 
+inline Vec3 RandomInHemisphere(const Vec3& normal)
+{
+	Vec3 inUnitSphere = RandomInUnitSphere();
+	if (Dot(inUnitSphere, normal) > 0.0) // in the same hemisphere as normal
+		return inUnitSphere;
+	else
+		return -inUnitSphere;
+}

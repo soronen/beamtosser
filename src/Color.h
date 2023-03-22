@@ -10,11 +10,11 @@ void WriteColor(std::ostream& out, Color pixelColor, int samplesPerPixel)
 	double g = pixelColor.y();
 	double b = pixelColor.z();
 
-	// Divide the color by the number of samples.
+	// Divide the color by the number of samples and gamma-correct for gamma=2.0
 	double scale = 1.0 / samplesPerPixel;
-	r *= scale;
-	g *= scale;
-	b *= scale;
+	r = std::sqrt(scale * r);
+	g = std::sqrt(scale * g);
+	b = std::sqrt(scale * b);
 
 
 
