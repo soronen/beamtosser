@@ -60,6 +60,14 @@ public:
 		return Vec3(RandomDouble(min, max), RandomDouble(min, max), RandomDouble(min, max));
 	}
 
+	inline bool NearZero() const
+	{
+		// Return true if the vector is close to zero in all dimensions.
+		const double s = 1e-8;
+		return (fabs(m_Coordinates[0]) < s) && (fabs(m_Coordinates[1]) < s) && (fabs(m_Coordinates[2]) < s);
+
+	}
+
 private:
 	double m_Coordinates[3];
 
@@ -150,4 +158,9 @@ inline Vec3 RandomInHemisphere(const Vec3& normal)
 		return inUnitSphere;
 	else
 		return -inUnitSphere;
+}
+
+inline Vec3 Reflect(const Vec3& v, const Vec3& n)
+{
+	return v - 2 * Dot(v, n) * n;
 }

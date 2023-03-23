@@ -2,12 +2,15 @@
 
 #include "Ray.h"
 
+class Material;
+
 struct HitRecord
 {
 	Point3 p = Point3(0,0,0);
 	Vec3 normal = Vec3(0,0,0);
 	double t = 0;
 	bool frontFace = true;
+	std::shared_ptr<Material> materialPointer;
 
 	 // normals always point outward from the surface
 	inline void setFaceNormal(const Ray& r, const Vec3& outwardNormal)
