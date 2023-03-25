@@ -29,11 +29,11 @@ public:
 	double operator[](int i) const { return m_Coordinates[i]; }
 	double& operator[](int i) { return m_Coordinates[i]; }
 
-	Vec3& operator+=(const Vec3& v)
+	Vec3& operator+=(const Vec3& m_V)
 	{
-		m_Coordinates[0] += v.m_Coordinates[0];
-		m_Coordinates[1] += v.m_Coordinates[1];
-		m_Coordinates[2] += v.m_Coordinates[2];
+		m_Coordinates[0] += m_V.m_Coordinates[0];
+		m_Coordinates[1] += m_V.m_Coordinates[1];
+		m_Coordinates[2] += m_V.m_Coordinates[2];
 		return *this;
 	}
 
@@ -78,58 +78,58 @@ using Color = Vec3;
 
 
 // ïnline utility operators
-inline std::ostream& operator<<(std::ostream& out, const Vec3& v)
+inline std::ostream& operator<<(std::ostream& out, const Vec3& m_V)
 {
-	return out << v.x() << ' ' << v.y() << ' ' << v.z();
+	return out << m_V.x() << ' ' << m_V.y() << ' ' << m_V.z();
 }
 
-inline Vec3 operator+(const Vec3& u, const Vec3& v)
+inline Vec3 operator+(const Vec3& m_U, const Vec3& m_V)
 {
-	return Vec3(u.x() + v.x(), u.y() + v.y(), u.z() + v.z());
+	return Vec3(m_U.x() + m_V.x(), m_U.y() + m_V.y(), m_U.z() + m_V.z());
 }
 
-inline Vec3 operator-(const Vec3& u, const Vec3& v)
+inline Vec3 operator-(const Vec3& m_U, const Vec3& m_V)
 {
-	return Vec3(u.x() - v.x(), u.y() - v.y(), u.z() - v.z());
+	return Vec3(m_U.x() - m_V.x(), m_U.y() - m_V.y(), m_U.z() - m_V.z());
 }
 
-inline Vec3 operator*(const Vec3& u, const Vec3& v)
+inline Vec3 operator*(const Vec3& m_U, const Vec3& m_V)
 {
-	return Vec3(u.x() * v.x(), u.y() * v.y(), u.z() * v.z());
+	return Vec3(m_U.x() * m_V.x(), m_U.y() * m_V.y(), m_U.z() * m_V.z());
 }
 
-inline Vec3 operator*(double t, const Vec3& v)
+inline Vec3 operator*(double t, const Vec3& m_V)
 {
-	return Vec3(t * v.x(), t * v.y(), t * v.z());
+	return Vec3(t * m_V.x(), t * m_V.y(), t * m_V.z());
 }
 
-inline Vec3 operator*(const Vec3& v, double t)
+inline Vec3 operator*(const Vec3& m_V, double t)
 {
-	return t * v;
+	return t * m_V;
 }
 
-inline Vec3 operator/(Vec3 v, double t)
+inline Vec3 operator/(Vec3 m_V, double t)
 {
-	return (1 / t) * v;
+	return (1 / t) * m_V;
 }
 
-inline double Dot(const Vec3& u, const Vec3& v)
+inline double Dot(const Vec3& m_U, const Vec3& m_V)
 {
-	return u.x() * v.x()
-		+ u.y() * v.y()
-		+ u.z() * v.z();
+	return m_U.x() * m_V.x()
+		+ m_U.y() * m_V.y()
+		+ m_U.z() * m_V.z();
 }
 
-inline Vec3 Cross(const Vec3& u, const Vec3& v)
+inline Vec3 Cross(const Vec3& m_U, const Vec3& m_V)
 {
-	return Vec3(u.y() * v.z() - u.z() * v.y(),
-		u.z() * v.x() - u.x() * v.z(),
-		u.x() * v.y() - u.y() * v.x());
+	return Vec3(m_U.y() * m_V.z() - m_U.z() * m_V.y(),
+		m_U.z() * m_V.x() - m_U.x() * m_V.z(),
+		m_U.x() * m_V.y() - m_U.y() * m_V.x());
 }
 
-inline Vec3 UnitVector(Vec3 v)
+inline Vec3 UnitVector(Vec3 m_V)
 {
-	return v / v.Length();
+	return m_V / m_V.Length();
 }
 
 // this is used for reflection rays
@@ -160,9 +160,9 @@ inline Vec3 RandomInHemisphere(const Vec3& normal)
 		return -inUnitSphere;
 }
 
-inline Vec3 Reflect(const Vec3& v, const Vec3& n)
+inline Vec3 Reflect(const Vec3& m_V, const Vec3& n)
 {
-	return v - 2 * Dot(v, n) * n;
+	return m_V - 2 * Dot(m_V, n) * n;
 }
 
 inline Vec3 Refract(const Vec3& uv, const Vec3& n, double etai_over_etat)
@@ -171,4 +171,15 @@ inline Vec3 Refract(const Vec3& uv, const Vec3& n, double etai_over_etat)
 	Vec3 rOutPerpetual = etai_over_etat * (uv + cosTheta * n);
 	Vec3 rOutParallel = -sqrt(fabs(1.0 - rOutPerpetual.LengthSquared())) * n;
 	return rOutPerpetual + rOutParallel;
+}
+
+inline Vec3 RandomInUnitDisk()
+{
+	while (true)
+	{
+		Vec3 p = Vec3(RandomDouble(-1, 1), RandomDouble(-1, 1), 0);
+		if (p.LengthSquared() >= 1) 
+			continue;
+		return p;
+	}
 }

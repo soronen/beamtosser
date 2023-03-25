@@ -2,35 +2,47 @@
 
 #include "RTWeek.h"
 
+
 class Camera
 {
 public:
-	Camera(Point3 lookFrom, Point3 lookAt, Vec3 vUp, double vFOV, double aspectRatio) 
+	Camera(
+		Point3 lookFrom,
+		Point3 lookAt,
+		Vec3   vUp,
+		double vFOV, // vertical field-of-view in degrees
+		double aspectRatio,
+		double aperture,
+		double focusDistance
+	)
 	{
-		double theta = degreesToRadians(vFOV); 
-
+		double theta = degreesToRadians(vFOV);
 		double h = tan(theta / 2);
-
 		double viewportHeight = 2.0 * h;
 		double viewportWidth = aspectRatio * viewportHeight;
 
-		// opposite direction that camera faces;
-		Vec3 w = UnitVector(lookFrom - lookAt);
-
-		Vec3 u = UnitVector(Cross(vUp, w));
-		Vec3 v = Cross(w, u);
+		Vec3 m_W = UnitVector(lookFrom - lookAt);
+		Vec3 m_U = UnitVector(Cross(vUp, m_W));
+		Vec3 m_V = Cross(m_W, m_U);
 
 		m_Origin = lookFrom;
-		m_Horizontal = viewportWidth * u;
-		m_Vertical = viewportHeight * v;
-		m_LowerLeftCorner = m_Origin -m_Horizontal / 2 - m_Vertical / 2 - w;
+		m_Horizontal = focusDistance * viewportWidth * m_U;
+		m_Vertical = focusDistance * viewportHeight * m_V;
+		m_LowerLeftCorner = m_Origin - m_Horizontal / 2 - m_Vertical / 2 - focusDistance * m_W;
+
+		m_LensRadius = aperture / 2;
 	}
 
-	// takes in horizontal and vertical pixel coordinates,
-	// returns ray that starts from camera and points to the pixel
-	Ray GetRay(double s, double t) const 
+
+	Ray GetRay(double s, double t) const
 	{
-		return Ray(m_Origin, m_LowerLeftCorner + s * m_Horizontal + t * m_Vertical - m_Origin);
+		Vec3 rd = m_LensRadius * RandomInUnitDisk();
+		Vec3 offset = m_U * rd.x() + m_V * rd.y();
+
+		return Ray(
+			m_Origin + offset,
+			m_LowerLeftCorner + s * m_Horizontal + t * m_Vertical - m_Origin - offset
+		);
 	}
 
 private:
@@ -38,4 +50,6 @@ private:
 	Point3 m_LowerLeftCorner;
 	Vec3 m_Horizontal;
 	Vec3 m_Vertical;
+	Vec3 m_U, m_V, m_W;
+	double m_LensRadius;
 };

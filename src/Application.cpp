@@ -8,6 +8,55 @@
 #include "Camera.h"
 #include "Material.h"
 
+#include <omp.h>
+
+HittableList RandomScene() {
+	HittableList world;
+
+	auto ground_material = std::make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+	world.Add(std::make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
+
+	for (int a = -11; a < 11; a++) {
+		for (int b = -11; b < 11; b++) {
+			auto choose_mat = RandomDouble();
+			Point3 center(a + 0.9 * RandomDouble(), 0.2, b + 0.9 * RandomDouble());
+
+			if ((center - Point3(4, 0.2, 0)).Length() > 0.9) {
+				std::shared_ptr<Material> sphere_material;
+
+				if (choose_mat < 0.8) {
+					// diffuse
+					Color albedo = Color::Random() * Color::Random();
+					sphere_material = std::make_shared<Lambertian>(albedo);
+					world.Add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else if (choose_mat < 0.95) {
+					// metal
+					Color albedo = Color::Random(0.5, 1);
+					double fuzz = RandomDouble(0, 0.5);
+					sphere_material = std::make_shared<Metal>(albedo, fuzz);
+					world.Add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else {
+					// glass
+					sphere_material = std::make_shared<Dielectric>(1.5);
+					world.Add(std::make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+			}
+		}
+	}
+
+	auto material1 = std::make_shared<Dielectric>(1.5);
+	world.Add(std::make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
+
+	auto material2 = std::make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+	world.Add(std::make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+
+	auto material3 = std::make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+	world.Add(std::make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
+	return world;
+}
 
 Color RayColor(const Ray& ray, const Hittable& world, int depth) {
 
@@ -38,38 +87,28 @@ int main()
 {
 
 	// image
-	const double aspectRatio = 16.0 / 9.0;
-	const int imageWidth = 400;
+	const double aspectRatio = 3.0 / 2.0;
+	const int imageWidth = 3840;
 	const int imageHeight = static_cast<int>(imageWidth / aspectRatio);
-	const int samplesPerPixel = 100;
+	const int samplesPerPixel = 500;
 	const int maxDepth = 50;
 
 	// world
-	HittableList world;
-
-	auto ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-	auto center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
-	auto left = std::make_shared<Dielectric>(1.5);
-	auto right = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
-
-	world.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, ground));
-	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, center));
-	world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, left));
-	world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), -0.45, left));
-	world.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, right));
-
-	//double R = cos(pi / 4);
-	//auto blue = std::make_shared<Lambertian>(Color(0, 0, 1));
-	//auto red = std::make_shared<Lambertian>(Color(1, 0, 0));
-	//world.Add(std::make_shared<Sphere>(Point3(-R, 0, -1), R, blue));
-	//world.Add(std::make_shared<Sphere>(Point3(R, 0, -1), R, red));
+	auto world = RandomScene();
 
 
 	// camera
-	Camera viewPoint(Point3(-2, 2, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 20.0, aspectRatio);
+	Point3 lookFrom(13, 2, 3);
+	Point3 lookAt(0, 0, 0);
+	Vec3 vUp(0, 1, 0);
+	double distToFocus = 10.0;
+	double aperture = 0.1;
+
+	Camera viewPoint(lookFrom, lookAt, vUp, 20, aspectRatio, aperture, distToFocus);
 
 	// render
 	std::cout << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";
+
 
 	// top to bottom, left to right
 	for (int i = imageHeight - 1; i >= 0; i--)
@@ -80,9 +119,9 @@ int main()
 			Color pixelColor(0, 0, 0);
 			for (int s = 0; s < samplesPerPixel; s++)
 			{
-				double v = (i + RandomDouble()) / (imageHeight - 1);
-				double u = (j + RandomDouble()) / (imageWidth - 1);
-				Ray r = viewPoint.GetRay(u, v);
+				double m_V = (i + RandomDouble()) / (imageHeight - 1);
+				double m_U = (j + RandomDouble()) / (imageWidth - 1);
+				Ray r = viewPoint.GetRay(m_U, m_V);
 				pixelColor += RayColor(r, world, maxDepth);
 			}
 			WriteColor(std::cout, pixelColor, samplesPerPixel);
