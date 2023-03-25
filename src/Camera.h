@@ -5,25 +5,37 @@
 class Camera
 {
 public:
-    Camera() {
-        double aspectRatio = 16.0 / 9.0;
-        double viewportHeight = 2.0;
-        double viewportWidth = aspectRatio * viewportHeight;
-        double focalLength = 1.0;
+	Camera(Point3 lookFrom, Point3 lookAt, Vec3 vUp, double vFOV, double aspectRatio) 
+	{
+		double theta = degreesToRadians(vFOV); 
 
-        m_Origin = Point3(0, 0, 0);
-        m_Horizontal = Vec3(viewportWidth, 0.0, 0.0);
-        m_Vertical = Vec3(0.0, viewportHeight, 0.0);
-        m_LowerLeftCorner = m_Origin - m_Horizontal / 2 - m_Vertical / 2 - Vec3(0, 0, focalLength);
-    }
+		double h = tan(theta / 2);
 
-    Ray GetRay(double u, double v) const {
-        return Ray(m_Origin, m_LowerLeftCorner + u * m_Horizontal + v * m_Vertical - m_Origin);
-    }
+		double viewportHeight = 2.0 * h;
+		double viewportWidth = aspectRatio * viewportHeight;
+
+		// opposite direction that camera faces;
+		Vec3 w = UnitVector(lookFrom - lookAt);
+
+		Vec3 u = UnitVector(Cross(vUp, w));
+		Vec3 v = Cross(w, u);
+
+		m_Origin = lookFrom;
+		m_Horizontal = viewportWidth * u;
+		m_Vertical = viewportHeight * v;
+		m_LowerLeftCorner = m_Origin -m_Horizontal / 2 - m_Vertical / 2 - w;
+	}
+
+	// takes in horizontal and vertical pixel coordinates,
+	// returns ray that starts from camera and points to the pixel
+	Ray GetRay(double s, double t) const 
+	{
+		return Ray(m_Origin, m_LowerLeftCorner + s * m_Horizontal + t * m_Vertical - m_Origin);
+	}
 
 private:
-    Point3 m_Origin;
-    Point3 m_LowerLeftCorner;
-    Vec3 m_Horizontal;
-    Vec3 m_Vertical;
+	Point3 m_Origin;
+	Point3 m_LowerLeftCorner;
+	Vec3 m_Horizontal;
+	Vec3 m_Vertical;
 };

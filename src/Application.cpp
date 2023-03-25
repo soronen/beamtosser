@@ -26,7 +26,7 @@ Color RayColor(const Ray& ray, const Hittable& world, int depth) {
 			return attenuation * RayColor(scattered, world, depth - 1);
 
 		Point3 target = record.p + RandomInHemisphere(record.normal);
-		return 0.5 * RayColor(Ray(record.p, target - record.p), world, depth-1);
+		return 0.5 * RayColor(Ray(record.p, target - record.p), world, depth - 1);
 	}
 
 	Vec3 unitDirection = UnitVector(ray.Direction());
@@ -48,19 +48,25 @@ int main()
 	HittableList world;
 
 	auto ground = std::make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-	auto center = std::make_shared<Lambertian>(Color(0.7, 0.3, 0.3));
-	auto left = std::make_shared<Metal>(Color(0.8, 0.8, 0.8), 0.3);
-	auto right = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 1.0);
+	auto center = std::make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+	auto left = std::make_shared<Dielectric>(1.5);
+	auto right = std::make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
 
 	world.Add(std::make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, ground));
 	world.Add(std::make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, center));
 	world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, left));
+	world.Add(std::make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), -0.45, left));
 	world.Add(std::make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, right));
 
+	//double R = cos(pi / 4);
+	//auto blue = std::make_shared<Lambertian>(Color(0, 0, 1));
+	//auto red = std::make_shared<Lambertian>(Color(1, 0, 0));
+	//world.Add(std::make_shared<Sphere>(Point3(-R, 0, -1), R, blue));
+	//world.Add(std::make_shared<Sphere>(Point3(R, 0, -1), R, red));
 
 
 	// camera
-	Camera viewPoint;
+	Camera viewPoint(Point3(-2, 2, 1), Point3(0, 0, -1), Vec3(0, 1, 0), 20.0, aspectRatio);
 
 	// render
 	std::cout << "P3\n" << imageWidth << ' ' << imageHeight << "\n255\n";

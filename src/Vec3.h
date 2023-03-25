@@ -164,3 +164,11 @@ inline Vec3 Reflect(const Vec3& v, const Vec3& n)
 {
 	return v - 2 * Dot(v, n) * n;
 }
+
+inline Vec3 Refract(const Vec3& uv, const Vec3& n, double etai_over_etat)
+{
+	double cosTheta = fmin(Dot(-uv, n), 1.0);
+	Vec3 rOutPerpetual = etai_over_etat * (uv + cosTheta * n);
+	Vec3 rOutParallel = -sqrt(fabs(1.0 - rOutPerpetual.LengthSquared())) * n;
+	return rOutPerpetual + rOutParallel;
+}
